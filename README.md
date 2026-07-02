@@ -140,7 +140,138 @@ Password authentication is not implemented yet. For production use, password sup
 
 ## Installation
 
-Installation instructions will be added later.
+Current release: `v0.1.0`
+
+Prebuilt binaries are published for Linux, macOS, and Windows. Users do not need Rust, Cargo, or a system SQLite installation.
+
+You only need OpenSSH installed and available as `ssh` in your `PATH`.
+
+### Quick Install
+
+Linux and macOS users can install the latest release with:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/abhishek-Rj/lazyssh/main/install.sh | sh
+```
+
+To install a specific version:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/abhishek-Rj/lazyssh/main/install.sh | sh -s -- v0.1.0
+```
+
+The installer downloads the matching GitHub Release archive, extracts it, and installs `lazyssh` into:
+
+```text
+~/.local/bin
+```
+
+If `~/.local/bin` is not in your `PATH`, the installer prints the shell command needed to add it.
+
+### Manual Download
+
+Download the archive for your operating system from the [GitHub Releases](https://github.com/abhishek-Rj/lazyssh/releases) page.
+
+For `v0.1.0`, the release assets are:
+
+| Operating System | CPU Architecture | Asset |
+| --- | --- | --- |
+| Linux | x86_64 | `lazyssh-v0.1.0-linux-x86_64.tar.gz` |
+| macOS | Intel x86_64 | `lazyssh-v0.1.0-macos-x86_64.tar.gz` |
+| macOS | Apple Silicon aarch64 | `lazyssh-v0.1.0-macos-aarch64.tar.gz` |
+| Windows | x86_64 | `lazyssh-v0.1.0-windows-x86_64.zip` |
+
+Linux and macOS:
+
+```bash
+tar -xzf lazyssh-v0.1.0-linux-x86_64.tar.gz
+cd lazyssh-v0.1.0-linux-x86_64
+mkdir -p ~/.local/bin
+cp lazyssh ~/.local/bin/
+```
+
+Use the matching macOS archive name on macOS.
+
+Windows:
+
+1. Download `lazyssh-v0.1.0-windows-x86_64.zip`.
+2. Extract the archive.
+3. Move `lazyssh.exe` to a directory in your `PATH`.
+
+### PATH
+
+If you installed to `~/.local/bin` and your shell cannot find `lazyssh`, add it to your `PATH`.
+
+For `bash`:
+
+```bash
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+For `zsh`:
+
+```bash
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+Then run:
+
+```bash
+lazyssh
+```
+
+### Verify Downloads
+
+Each release includes a `SHA256SUMS` file.
+
+Download the checksum file and verify your archive:
+
+```bash
+sha256sum -c SHA256SUMS
+```
+
+On macOS, if `sha256sum` is unavailable, use:
+
+```bash
+shasum -a 256 lazyssh-v0.1.0-macos-aarch64.tar.gz
+```
+
+Then compare the output with the matching line in `SHA256SUMS`.
+
+### Build From Source
+
+Building from source requires Rust:
+
+```bash
+cargo build --release
+```
+
+The binary will be available at:
+
+```text
+target/release/lazyssh
+```
+
+## Releases
+
+Maintainers publish a new release by creating and pushing a version tag:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+GitHub Actions automatically builds release binaries, packages them, generates `SHA256SUMS`, and attaches all assets to the GitHub Release.
+
+The release workflow currently publishes:
+
+- `lazyssh-v0.1.0-linux-x86_64.tar.gz`
+- `lazyssh-v0.1.0-macos-x86_64.tar.gz`
+- `lazyssh-v0.1.0-macos-aarch64.tar.gz`
+- `lazyssh-v0.1.0-windows-x86_64.zip`
+- `SHA256SUMS`
 
 ## License
 
