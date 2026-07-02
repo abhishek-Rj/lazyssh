@@ -1,118 +1,118 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - "v*.*.*"
+    push:
+        tags:
+            - "v*.*.*"
 
 env:
-  CARGO_TERM_COLOR: always
-  BIN_NAME: lazyssh
+    CARGO_TERM_COLOR: always
+    BIN_NAME: lazyssh
 
 permissions:
-  contents: write
+    contents: write
 
 jobs:
-  build:
-    name: build ${{ matrix.name }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - name: linux-x86_64
-            os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-            archive: tar.gz
-          - name: macos-x86_64
-            os: macos-13
-            target: x86_64-apple-darwin
-            archive: tar.gz
-          - name: macos-aarch64
-            os: macos-13
-            target: aarch64-apple-darwin
-            archive: tar.gz
-          - name: windows-x86_64
-            os: windows-latest
-            target: x86_64-pc-windows-msvc
-            archive: zip
+    build:
+        name: build ${{ matrix.name }}
+        runs-on: ${{ matrix.os }}
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - name: linux-x86_64
+                      os: ubuntu-latest
+                      target: x86_64-unknown-linux-gnu
+                      archive: tar.gz
+                    - name: macos-x86_64
+                      os: macos-latest
+                      target: x86_64-apple-darwin
+                      archive: tar.gz
+                    - name: macos-aarch64
+                      os: macos-latest
+                      target: aarch64-apple-darwin
+                      archive: tar.gz
+                    - name: windows-x86_64
+                      os: windows-latest
+                      target: x86_64-pc-windows-msvc
+                      archive: zip
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
 
-      - name: Install Rust stable
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: ${{ matrix.target }}
+            - name: Install Rust stable
+              uses: dtolnay/rust-toolchain@stable
+              with:
+                  targets: ${{ matrix.target }}
 
-      - name: Cache Cargo dependencies
-        uses: Swatinem/rust-cache@v2
-        with:
-          key: release-${{ matrix.target }}
+            - name: Cache Cargo dependencies
+              uses: Swatinem/rust-cache@v2
+              with:
+                  key: release-${{ matrix.target }}
 
-      - name: Build release binary
-        shell: bash
-        run: |
-          set -euo pipefail
-          cargo build --release --locked --target "${{ matrix.target }}"
+            - name: Build release binary
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  cargo build --release --locked --target "${{ matrix.target }}"
 
-      - name: Strip binary
-        if: matrix.os != 'windows-latest'
-        shell: bash
-        run: |
-          set -euo pipefail
-          strip "target/${{ matrix.target }}/release/${BIN_NAME}" || true
+            - name: Strip binary
+              if: matrix.os != 'windows-latest'
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  strip "target/${{ matrix.target }}/release/${BIN_NAME}" || true
 
-      - name: Package archive
-        shell: bash
-        run: |
-          set -euo pipefail
-          version="${GITHUB_REF_NAME}"
-          package="${BIN_NAME}-${version}-${{ matrix.name }}"
-          mkdir -p "dist/${package}"
+            - name: Package archive
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  version="${GITHUB_REF_NAME}"
+                  package="${BIN_NAME}-${version}-${{ matrix.name }}"
+                  mkdir -p "dist/${package}"
 
-          if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            cp "target/${{ matrix.target }}/release/${BIN_NAME}.exe" "dist/${package}/"
-            cp README.md LICENSE "dist/${package}/"
-            (cd dist && 7z a "${package}.zip" "${package}")
-          else
-            cp "target/${{ matrix.target }}/release/${BIN_NAME}" "dist/${package}/"
-            cp README.md LICENSE "dist/${package}/"
-            tar -C dist -czf "dist/${package}.tar.gz" "${package}"
-          fi
+                  if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+                    cp "target/${{ matrix.target }}/release/${BIN_NAME}.exe" "dist/${package}/"
+                    cp README.md LICENSE "dist/${package}/"
+                    (cd dist && 7z a "${package}.zip" "${package}")
+                  else
+                    cp "target/${{ matrix.target }}/release/${BIN_NAME}" "dist/${package}/"
+                    cp README.md LICENSE "dist/${package}/"
+                    tar -C dist -czf "dist/${package}.tar.gz" "${package}"
+                  fi
 
-      - name: Upload packaged binary
-        uses: actions/upload-artifact@v4
-        with:
-          name: lazyssh-${{ matrix.name }}
-          path: |
-            dist/*.tar.gz
-            dist/*.zip
-          if-no-files-found: error
+            - name: Upload packaged binary
+              uses: actions/upload-artifact@v4
+              with:
+                  name: lazyssh-${{ matrix.name }}
+                  path: |
+                      dist/*.tar.gz
+                      dist/*.zip
+                  if-no-files-found: error
 
-  publish:
-    name: publish release
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Download release artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: dist
-          merge-multiple: true
+    publish:
+        name: publish release
+        needs: build
+        runs-on: ubuntu-latest
+        steps:
+            - name: Download release artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  path: dist
+                  merge-multiple: true
 
-      - name: Generate SHA256 checksums
-        run: |
-          set -euo pipefail
-          cd dist
-          sha256sum *.tar.gz *.zip > SHA256SUMS
+            - name: Generate SHA256 checksums
+              run: |
+                  set -euo pipefail
+                  cd dist
+                  sha256sum *.tar.gz *.zip > SHA256SUMS
 
-      - name: Publish GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          generate_release_notes: true
-          files: |
-            dist/*.tar.gz
-            dist/*.zip
-            dist/SHA256SUMS
+            - name: Publish GitHub Release
+              uses: softprops/action-gh-release@v2
+              with:
+                  generate_release_notes: true
+                  files: |
+                      dist/*.tar.gz
+                      dist/*.zip
+                      dist/SHA256SUMS
