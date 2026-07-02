@@ -50,7 +50,8 @@ os="$(detect_os)"
 arch="$(detect_arch)"
 
 case "$os-$arch" in
-  linux-x86_64|linux-aarch64|macos-x86_64|macos-aarch64|windows-x86_64) ;;
+  linux-x86_64|macos-x86_64|macos-aarch64|windows-x86_64) ;;
+  linux-aarch64) fail "unsupported platform: linux-aarch64" ;;
   windows-aarch64) fail "unsupported platform: windows-aarch64" ;;
   *) fail "unsupported platform: $os-$arch" ;;
 esac

@@ -152,6 +152,7 @@ struct ServerForm {
     tags: String,
     favorite: bool,
     field: usize,
+    cursor: usize,
     error: Option<String>,
     warning: Option<String>,
 }
@@ -172,6 +173,7 @@ impl ServerForm {
             tags: String::new(),
             favorite: false,
             field: 0,
+            cursor: 0,
             error: None,
             warning: None,
         }
@@ -196,6 +198,7 @@ impl ServerForm {
             tags: server.tags.clone(),
             favorite: server.favorite,
             field: 0,
+            cursor: server.name.chars().count(),
             error: None,
             warning: None,
         }
@@ -213,7 +216,7 @@ impl ServerForm {
         }
     }
 
-    fn current_value_mut(&mut self) -> Option<&mut String> {
+    fn active_text_value_mut(&mut self) -> Option<&mut String> {
         match self.active_field() {
             FormField::Name => Some(&mut self.name),
             FormField::Host => Some(&mut self.host),
@@ -225,6 +228,57 @@ impl ServerForm {
             FormField::Tags => Some(&mut self.tags),
             FormField::Group | FormField::AuthType | FormField::Favorite => None,
         }
+    }
+
+    fn active_text_len(&self) -> usize {
+        self.current_value_for_render(self.active_field())
+            .chars()
+            .count()
+    }
+
+    fn next_field(&mut self) {
+        self.field = (self.field + 1) % FormField::ALL.len();
+        self.cursor = self.active_text_len();
+    }
+
+    fn previous_field(&mut self) {
+        self.field = self
+            .field
+            .checked_sub(1)
+            .unwrap_or(FormField::ALL.len() - 1);
+        self.cursor = self.active_text_len();
+    }
+
+    fn move_cursor_left(&mut self) {
+        self.cursor = self.cursor.saturating_sub(1);
+    }
+
+    fn move_cursor_right(&mut self) {
+        self.cursor = min(self.cursor + 1, self.active_text_len());
+    }
+
+    fn insert_char(&mut self, ch: char) {
+        let cursor = self.cursor;
+        let Some(value) = self.active_text_value_mut() else {
+            return;
+        };
+        self.cursor = insert_char_at(value, cursor, ch);
+    }
+
+    fn backspace(&mut self) {
+        let cursor = self.cursor;
+        let Some(value) = self.active_text_value_mut() else {
+            return;
+        };
+        self.cursor = backspace_at(value, cursor);
+    }
+
+    fn delete_char(&mut self) {
+        let cursor = self.cursor;
+        let Some(value) = self.active_text_value_mut() else {
+            return;
+        };
+        self.cursor = delete_char_at(value, cursor);
     }
 }
 
@@ -1142,14 +1196,10 @@ impl App {
         match key_event.code {
             KeyCode::Esc => self.dialog = Dialog::None,
             KeyCode::Tab | KeyCode::Down => {
-                self.form.field = (self.form.field + 1) % FormField::ALL.len();
+                self.form.next_field();
             }
             KeyCode::BackTab | KeyCode::Up => {
-                self.form.field = self
-                    .form
-                    .field
-                    .checked_sub(1)
-                    .unwrap_or(FormField::ALL.len() - 1);
+                self.form.previous_field();
             }
             KeyCode::Left if self.form.active_field() == FormField::AuthType => {
                 self.form.auth_type = self.form.auth_type.checked_sub(1).unwrap_or(2);
@@ -1162,6 +1212,12 @@ impl App {
             }
             KeyCode::Right if self.form.active_field() == FormField::Group => {
                 self.select_form_group(1);
+            }
+            KeyCode::Left if self.form.active_text_value_mut().is_some() => {
+                self.form.move_cursor_left();
+            }
+            KeyCode::Right if self.form.active_text_value_mut().is_some() => {
+                self.form.move_cursor_right();
             }
             KeyCode::Left | KeyCode::Right | KeyCode::Char(' ')
                 if self.form.active_field() == FormField::Favorite =>
@@ -1176,9 +1232,10 @@ impl App {
                 }
             }
             KeyCode::Backspace => {
-                if let Some(value) = self.form.current_value_mut() {
-                    value.pop();
-                }
+                self.form.backspace();
+            }
+            KeyCode::Delete => {
+                self.form.delete_char();
             }
             KeyCode::Char('f') if key_event.modifiers.contains(KeyModifiers::CONTROL) => {
                 self.form.favorite = !self.form.favorite;
@@ -1199,8 +1256,8 @@ impl App {
                     } else if matches!(ch, 'n' | 'N' | '0') {
                         self.form.favorite = false;
                     }
-                } else if let Some(value) = self.form.current_value_mut() {
-                    value.push(ch);
+                } else {
+                    self.form.insert_char(ch);
                 }
             }
             _ => {}
@@ -1719,6 +1776,7 @@ impl App {
             FormRow::blank(),
             FormRow::section("BUTTONS"),
             FormRow::message("Use ENTER to save or ESC to cancel.", theme::MUTED),
+            FormRow::message("* required field. Use ←/→ to edit text.", theme::MUTED),
         ];
         if let Some(error) = &self.form.error {
             rows.push(FormRow::blank());
@@ -1844,26 +1902,30 @@ impl App {
             }
             _ => self.form.current_value_for_render(field).to_string(),
         };
-        let visible_value = visible_tail(&raw_value, available);
-        let mut spans = vec![
+        let cursor = if is_active {
+            self.form.cursor
+        } else {
+            raw_value.chars().count()
+        };
+        let (visible_value, cursor_col) = visible_value_and_cursor(&raw_value, cursor, available);
+        let label = if required {
+            format!("{}*", field.label())
+        } else {
+            field.label().to_string()
+        };
+        let spans = vec![
             Span::styled(if is_active { ">" } else { " " }, label_style),
             Span::raw(" "),
             Span::styled(
-                format!("{:<width$}", field.label(), width = FORM_LABEL_WIDTH),
+                format!("{label:<width$}", width = FORM_LABEL_WIDTH),
                 label_style,
             ),
             Span::styled(visible_value.clone(), value_style),
         ];
-        if required {
-            spans.push(Span::styled(
-                "  required",
-                Style::default().fg(theme::MUTED),
-            ));
-        }
         FormRow {
             line: Line::from(spans),
             field: Some(field),
-            value_width: visible_value.len() as u16,
+            value_width: cursor_col,
         }
     }
 
@@ -2166,6 +2228,61 @@ fn visible_tail(value: &str, width: u16) -> String {
     let chars = value.chars().collect::<Vec<_>>();
     let start = chars.len().saturating_sub(width);
     chars[start..].iter().collect()
+}
+
+fn visible_value_and_cursor(value: &str, cursor: usize, width: u16) -> (String, u16) {
+    let width = width as usize;
+    if width == 0 {
+        return (String::new(), 0);
+    }
+    let chars = value.chars().collect::<Vec<_>>();
+    let cursor = min(cursor, chars.len());
+    let start = if chars.len() > width && cursor > width {
+        cursor - width
+    } else {
+        0
+    };
+    let end = min(start + width, chars.len());
+    let visible = chars[start..end].iter().collect();
+    (visible, (cursor - start) as u16)
+}
+
+fn char_to_byte_index(value: &str, char_index: usize) -> usize {
+    value
+        .char_indices()
+        .nth(char_index)
+        .map(|(index, _)| index)
+        .unwrap_or(value.len())
+}
+
+fn insert_char_at(value: &mut String, cursor: usize, ch: char) -> usize {
+    let cursor = min(cursor, value.chars().count());
+    let index = char_to_byte_index(value, cursor);
+    value.insert(index, ch);
+    cursor + 1
+}
+
+fn backspace_at(value: &mut String, cursor: usize) -> usize {
+    if cursor == 0 {
+        return 0;
+    }
+    let len = value.chars().count();
+    let cursor = min(cursor, len);
+    let start = char_to_byte_index(value, cursor - 1);
+    let end = char_to_byte_index(value, cursor);
+    value.replace_range(start..end, "");
+    cursor - 1
+}
+
+fn delete_char_at(value: &mut String, cursor: usize) -> usize {
+    let len = value.chars().count();
+    if cursor >= len {
+        return len;
+    }
+    let start = char_to_byte_index(value, cursor);
+    let end = char_to_byte_index(value, cursor + 1);
+    value.replace_range(start..end, "");
+    cursor
 }
 
 fn visible_editor_lines(value: &str, width: u16, height: u16) -> Vec<String> {
