@@ -2,13 +2,13 @@
 set -eu
 
 OWNER="abhishek-Rj"
-REPO="lazyssh"
-BIN_NAME="lazyssh"
+REPO="russhx"
+BIN_NAME="russhx"
 INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
 VERSION="${1:-latest}"
 
 fail() {
-  printf 'lazyssh installer: %s\n' "$*" >&2
+  printf 'russhx installer: %s\n' "$*" >&2
   exit 1
 }
 
@@ -72,7 +72,7 @@ case "$os" in
 esac
 
 download_url="https://github.com/$OWNER/$REPO/releases/download/$VERSION/$archive"
-tmp_dir="$(mktemp -d 2>/dev/null || mktemp -d -t lazyssh)"
+tmp_dir="$(mktemp -d 2>/dev/null || mktemp -d -t russhx)"
 cleanup() {
   rm -rf "$tmp_dir"
 }
@@ -130,6 +130,6 @@ if ! command -v ssh >/dev/null 2>&1; then
   cat <<EOF
 
 Warning: OpenSSH was not found in PATH.
-lazyssh uses the system ssh command to connect to servers.
+russhx uses the system ssh command to connect to servers.
 EOF
 fi

@@ -7,7 +7,7 @@ on:
 
 env:
     CARGO_TERM_COLOR: always
-    BIN_NAME: lazyssh
+    BIN_NAME: russhx
 
 permissions:
     contents: write
@@ -85,7 +85,7 @@ jobs:
             - name: Upload packaged binary
               uses: actions/upload-artifact@v4
               with:
-                  name: lazyssh-${{ matrix.name }}
+                  name: russhx-${{ matrix.name }}
                   path: |
                       dist/*.tar.gz
                       dist/*.zip

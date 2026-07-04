@@ -1,6 +1,6 @@
-# lazyssh
+# russhx
 
-`lazyssh` is a terminal user interface for managing SSH servers locally.
+`russhx` is a terminal user interface for managing SSH servers locally.
 
 The goal is to make SSH access feel like using tools such as `lazygit`, `lazydocker`, or `k9s`: fast, keyboard-first, and built for people who live in the terminal.
 
@@ -10,7 +10,7 @@ Instead of remembering IP addresses, usernames, ports, SSH key paths, notes, and
 
 - Store SSH server entries locally.
 - Keep server metadata easy to browse and edit.
-- Launch SSH using the same terminal session that opened `lazyssh`.
+- Launch SSH using the same terminal session that opened `russhx`.
 - Avoid cloud sync or remote dependencies.
 - Keep the UI stable, dark, keyboard-driven, and DevOps-focused.
 - Use SQLite as the persistence layer.
@@ -39,13 +39,13 @@ Instead of remembering IP addresses, usernames, ports, SSH key paths, notes, and
 
 ## Data Storage
 
-`lazyssh` stores data in a local SQLite database.
+`russhx` stores data in a local SQLite database.
 
 The database path is chosen according to the operating system:
 
-- Linux/Unix: `$XDG_DATA_HOME/lazyssh/lazyssh.db` or `~/.local/share/lazyssh/lazyssh.db`
-- macOS: `~/Library/Application Support/lazyssh/lazyssh.db`
-- Windows: `%APPDATA%\lazyssh\lazyssh.db` or `%LOCALAPPDATA%\lazyssh\lazyssh.db`
+- Linux/Unix: `$XDG_DATA_HOME/russhx/russhx.db` or `~/.local/share/russhx/russhx.db`
+- macOS: `~/Library/Application Support/russhx/russhx.db`
+- Windows: `%APPDATA%\russhx\russhx.db` or `%LOCALAPPDATA%\russhx\russhx.db`
 
 No data is synced to the cloud.
 
@@ -126,15 +126,15 @@ When a group is deleted, servers assigned to it are unassigned.
 
 ## SSH Behavior
 
-For SSH key based entries, `lazyssh` constructs a command like:
+For SSH key based entries, `russhx` constructs a command like:
 
 ```bash
 ssh -i ~/.ssh/prod.pem ubuntu@103.21.244.10 -p 22
 ```
 
-Before launching SSH, `lazyssh` restores the terminal, leaves the alternate screen, disables raw mode, and then starts `ssh` in the same terminal session.
+Before launching SSH, `russhx` restores the terminal, leaves the alternate screen, disables raw mode, and then starts `ssh` in the same terminal session.
 
-When the SSH session ends, `lazyssh` does not reopen automatically.
+When the SSH session ends, `russhx` does not reopen automatically.
 
 Password authentication is not implemented yet. For production use, password support should avoid plain SQLite password storage and use either the normal OpenSSH password prompt or encrypted local secret storage.
 
@@ -151,16 +151,16 @@ You only need OpenSSH installed and available as `ssh` in your `PATH`.
 Linux and macOS users can install the latest release with:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/abhishek-Rj/lazyssh/main/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/abhishek-Rj/russhx/main/install.sh | sh
 ```
 
 To install a specific version:
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/abhishek-Rj/lazyssh/main/install.sh | sh -s -- v0.1.0
+curl -fsSL https://raw.githubusercontent.com/abhishek-Rj/russhx/main/install.sh | sh -s -- v0.1.0
 ```
 
-The installer downloads the matching GitHub Release archive, extracts it, and installs `lazyssh` into:
+The installer downloads the matching GitHub Release archive, extracts it, and installs `russhx` into:
 
 ```text
 ~/.local/bin
@@ -170,37 +170,37 @@ If `~/.local/bin` is not in your `PATH`, the installer prints the shell command 
 
 ### Manual Download
 
-Download the archive for your operating system from the [GitHub Releases](https://github.com/abhishek-Rj/lazyssh/releases) page.
+Download the archive for your operating system from the [GitHub Releases](https://github.com/abhishek-Rj/russhx/releases) page.
 
 For `v0.1.0`, the release assets are:
 
 | Operating System | CPU Architecture | Asset |
 | --- | --- | --- |
-| Linux | x86_64 | `lazyssh-v0.1.0-linux-x86_64.tar.gz` |
-| macOS | Intel x86_64 | `lazyssh-v0.1.0-macos-x86_64.tar.gz` |
-| macOS | Apple Silicon aarch64 | `lazyssh-v0.1.0-macos-aarch64.tar.gz` |
-| Windows | x86_64 | `lazyssh-v0.1.0-windows-x86_64.zip` |
+| Linux | x86_64 | `russhx-v0.1.0-linux-x86_64.tar.gz` |
+| macOS | Intel x86_64 | `russhx-v0.1.0-macos-x86_64.tar.gz` |
+| macOS | Apple Silicon aarch64 | `russhx-v0.1.0-macos-aarch64.tar.gz` |
+| Windows | x86_64 | `russhx-v0.1.0-windows-x86_64.zip` |
 
 Linux and macOS:
 
 ```bash
-tar -xzf lazyssh-v0.1.0-linux-x86_64.tar.gz
-cd lazyssh-v0.1.0-linux-x86_64
+tar -xzf russhx-v0.1.0-linux-x86_64.tar.gz
+cd russhx-v0.1.0-linux-x86_64
 mkdir -p ~/.local/bin
-cp lazyssh ~/.local/bin/
+cp russhx ~/.local/bin/
 ```
 
 Use the matching macOS archive name on macOS.
 
 Windows:
 
-1. Download `lazyssh-v0.1.0-windows-x86_64.zip`.
+1. Download `russhx-v0.1.0-windows-x86_64.zip`.
 2. Extract the archive.
-3. Move `lazyssh.exe` to a directory in your `PATH`.
+3. Move `russhx.exe` to a directory in your `PATH`.
 
 ### PATH
 
-If you installed to `~/.local/bin` and your shell cannot find `lazyssh`, add it to your `PATH`.
+If you installed to `~/.local/bin` and your shell cannot find `russhx`, add it to your `PATH`.
 
 For `bash`:
 
@@ -219,7 +219,7 @@ source ~/.zshrc
 Then run:
 
 ```bash
-lazyssh
+russhx
 ```
 
 ### Verify Downloads
@@ -235,7 +235,7 @@ sha256sum -c SHA256SUMS
 On macOS, if `sha256sum` is unavailable, use:
 
 ```bash
-shasum -a 256 lazyssh-v0.1.0-macos-aarch64.tar.gz
+shasum -a 256 russhx-v0.1.0-macos-aarch64.tar.gz
 ```
 
 Then compare the output with the matching line in `SHA256SUMS`.
@@ -251,7 +251,7 @@ cargo build --release
 The binary will be available at:
 
 ```text
-target/release/lazyssh
+target/release/russhx
 ```
 
 ## Releases
@@ -267,10 +267,10 @@ GitHub Actions automatically builds release binaries, packages them, generates `
 
 The release workflow currently publishes:
 
-- `lazyssh-v0.1.0-linux-x86_64.tar.gz`
-- `lazyssh-v0.1.0-macos-x86_64.tar.gz`
-- `lazyssh-v0.1.0-macos-aarch64.tar.gz`
-- `lazyssh-v0.1.0-windows-x86_64.zip`
+- `russhx-v0.1.0-linux-x86_64.tar.gz`
+- `russhx-v0.1.0-macos-x86_64.tar.gz`
+- `russhx-v0.1.0-macos-aarch64.tar.gz`
+- `russhx-v0.1.0-windows-x86_64.zip`
 - `SHA256SUMS`
 
 ## License

@@ -1,5 +1,5 @@
 [package]
-name = "lazyssh"
+name = "russhx"
 version = "0.1.0"
 description = "A terminal-based SSH server manager for securely organizing and quickly accessing server credentials and SSH connections."
 authors = ["abhishek-Rj <mahitomaki96@gmail.com>"]

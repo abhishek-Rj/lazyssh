@@ -26,8 +26,8 @@ use self::ssh::{SshLaunch, launch_ssh, ssh_command, ssh_launch};
 mod ssh;
 mod theme;
 
-const APP_NAME: &str = "lazyssh";
-const DB_FILE: &str = "lazyssh.db";
+const APP_NAME: &str = "russhx";
+const DB_FILE: &str = "russhx.db";
 const FORM_LABEL_WIDTH: usize = 17;
 const FORM_INPUT_COL: u16 = 2 + FORM_LABEL_WIDTH as u16;
 
@@ -385,9 +385,9 @@ impl App {
         app.status = Some((
             LogLevel::Info,
             if app.servers.is_empty() {
-                "Welcome to lazyssh. Add a server to get started.".to_string()
+                "Welcome to russhx. Add a server to get started.".to_string()
             } else {
-                "Welcome to lazyssh.".to_string()
+                "Welcome to russhx.".to_string()
             },
         ));
         if let Some(id) = app.settings.last_selected_server {
@@ -450,13 +450,13 @@ impl App {
             .split(area);
 
         let logo = Text::from(vec![
-            Line::from("  _                         _     ").fg(theme::CYAN),
-            Line::from(" | | __ _ _____   _ ___ ___| |__  ").fg(theme::CYAN),
-            Line::from(" | |/ _` |_  / | | / __/ __| '_ \\ ").fg(theme::CYAN),
-            Line::from(" | | (_| |/ /| |_| \\__ \\__ \\ | | |").fg(theme::CYAN),
-            Line::from(" |_|\\__,_/___|\\__, |___/___/_| |_|").fg(theme::CYAN),
-            Line::from("              |___/                ").fg(theme::CYAN),
-            Line::from("  the lazy way to manage your servers").fg(theme::TEXT),
+            Line::from("  ____                _          ").fg(theme::CYAN),
+            Line::from(" |  _ \\ _   _ ___ ___| |__ __  __").fg(theme::CYAN),
+            Line::from(" | |_) | | | / __/ __| '_ \\\\ \\/ /").fg(theme::CYAN),
+            Line::from(" |  _ <| |_| \\__ \\__ \\ | | |>  < ").fg(theme::CYAN),
+            Line::from(" |_| \\_\\\\__,_|___/___/_| |_/_/\\_\\").fg(theme::CYAN),
+            Line::from("                                  ").fg(theme::CYAN),
+            Line::from("  terminal server vault and ssh launcher").fg(theme::TEXT),
         ]);
         frame.render_widget(Paragraph::new(logo), chunks[0]);
 
@@ -1043,7 +1043,7 @@ impl App {
         let popup = centered_rect(area, 78, 86);
         frame.render_widget(Clear, popup);
         let text = Text::from(vec![
-            Line::from("lazyssh help").fg(theme::CYAN).bold(),
+            Line::from("russhx help").fg(theme::CYAN).bold(),
             Line::from(""),
             shortcut_line("Enter", "Connect to selected server"),
             shortcut_line("a", "Add server"),
@@ -2458,7 +2458,7 @@ fn copy_to_clipboard(value: &str) -> Result<()> {
 
 impl Widget for &App {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        Paragraph::new("lazyssh")
+        Paragraph::new("russhx")
             .style(Style::default().fg(theme::CYAN))
             .render(area, buf);
     }
@@ -2480,7 +2480,7 @@ mod tests {
     #[test]
     fn initializes_sqlite_schema_and_defaults() {
         let db_path = env::temp_dir().join(format!(
-            "lazyssh-test-{}.db",
+            "russhx-test-{}.db",
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .unwrap()
@@ -2492,7 +2492,7 @@ mod tests {
         assert!(app.servers.is_empty());
         assert_eq!(
             app.status.as_ref().map(|(_, message)| message.as_str()),
-            Some("Welcome to lazyssh. Add a server to get started.")
+            Some("Welcome to russhx. Add a server to get started.")
         );
         drop(app);
         let _ = fs::remove_file(db_path);
@@ -2527,7 +2527,7 @@ mod tests {
     #[test]
     fn search_filters_server_fields() {
         let db_path = env::temp_dir().join(format!(
-            "lazyssh-search-test-{}.db",
+            "russhx-search-test-{}.db",
             std::time::SystemTime::now()
                 .duration_since(std::time::UNIX_EPOCH)
                 .unwrap()
