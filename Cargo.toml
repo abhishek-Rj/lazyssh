@@ -10,7 +10,7 @@ edition = "2024"
 color-eyre = "0.6.5"
 crossterm = "0.29.0"
 ratatui = "0.30.2"
-rusqlite = { version = "0.32.1", features = ["bundled"] }
+rusqlite = { version = "0.40.2", features = ["bundled"] }
 
 # Read the optimization guideline for more details: https://ratatui.rs/recipes/apps/release-your-app/#optimizations
 [profile.release]
